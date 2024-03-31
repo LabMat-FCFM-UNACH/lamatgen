@@ -321,7 +321,7 @@ void generar_curva( vector<vector<double>> parametrizacion, double espesor, int 
 
   double radio_del_tubo = espesor/2;
 
-	advertencia_punto_fijo(0, 1, parametrizacion[0], parametrizacion[1]);
+	// advertencia_punto_fijo(0, 1, parametrizacion[0], parametrizacion[1]);
   vector<vector<double>> plano = generador_planos(parametrizacion[0], parametrizacion[1]);
 	
    vector<vector<vector<double>>> puntos_circulares = generar_puntos(plano[0], plano[1], radio_del_tubo, n_puntos, parametrizacion[0], parametrizacion[1]);
@@ -349,7 +349,7 @@ void generar_curva( vector<vector<double>> parametrizacion, double espesor, int 
   vector<double> base_rotacion = plano[0];
 
   for (int j = 1; j<parametrizacion.size()-1; j++){
-  	advertencia_punto_fijo(j, j+1, parametrizacion[j], parametrizacion[j+1]);
+  	// advertencia_punto_fijo(j, j+1, parametrizacion[j], parametrizacion[j+1]);
 
     vector<vector<double>> planos = base_rotada(base_rotacion, parametrizacion[j], parametrizacion[j+1]);
 
