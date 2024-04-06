@@ -276,41 +276,49 @@ vector<vector<vector<double>>> generar_puntos(vector<double> base1, vector<doubl
   return vectores_alrededor;
 }
 
-vector<vector<double>> base_rotada(vector<double> base, vector<double> p1, vector<double> p2){
+vector<vector<double>> base_rotada(vector<double> v, vector<double> p1, vector<double> p2){
 
   vector<double> eje = {p2[0]-p1[0], p2[1]-p1[1], p2[2]-p1[2]};
 
-  double norma_eje = sqrt(pow(eje[0], 2) + pow(eje[1], 2) + pow(eje[2], 2));
+  double norma_eje = sqrt(producto_punto(eje, eje));
 
   eje = {eje[0]/norma_eje, eje[1]/norma_eje, eje[2]/norma_eje};
 
   // Aquí comenzamos la revisión del ángulo entre los dos vectores.
 
-  double angulo_base1 =  M_PI/2 - acos(producto_punto(base, eje));
+  double ang_v1 =  M_PI/2 - acos(producto_punto(v, eje));
 
-  vector<double> eje_rotacion1 = producto_cruz(eje, base);
+  vector<double> k = producto_cruz(eje, v);
 
-  double norma_rotacion = sqrt(pow(eje_rotacion1[0], 2) + pow(eje_rotacion1[1], 2) + pow(eje_rotacion1[2], 2));
+  double norma_k = sqrt(producto_punto(k, k));
 
-  eje_rotacion1 = {eje_rotacion1[0]/norma_rotacion, eje_rotacion1[1]/norma_rotacion, eje_rotacion1[2]/norma_rotacion};
+  k = {k[0]/norma_k, k[1]/norma_k, k[2]/norma_k};
+	
+	double x,y,z;
+	
+	x = v[0]*cos(ang_v1) + (k[0]*k[0]*v[0] + k[0]*k[1]*v[1] + k[0]*k[2]*v[2])*(1-cos(ang_v1)) + (k[1]*v[2]-k[2]*v[1])*sin(ang_v1);
+	y = v[1]*cos(ang_v1) + (k[1]*k[0]*v[0] + k[1]*k[1]*v[1] + k[1]*k[2]*v[2])*(1-cos(ang_v1)) + (k[2]*v[0]-k[0]*v[2])*sin(ang_v1);
+	z = v[2]*cos(ang_v1) + (k[2]*k[0]*v[0] + k[2]*k[1]*v[1] + k[2]*k[2]*v[2])*(1-cos(ang_v1)) + (k[0]*v[1]-k[1]*v[0])*sin(ang_v1);
+	
+  vector<double> v_r = {x,y,z};
 
-  vector<double> vector_rotado = {
-  base[0]*cos(angulo_base1) + (eje_rotacion1[0]*eje_rotacion1[0]*base[0] + eje_rotacion1[0]*eje_rotacion1[1]*base[1] + eje_rotacion1[0]*eje_rotacion1[2]*base[2])*(1-cos(angulo_base1)) + (eje_rotacion1[1]*base[2]-eje_rotacion1[2]*base[1])*sin(angulo_base1), base[1]*cos(angulo_base1) + (eje_rotacion1[1]*eje_rotacion1[0]*base[0] + eje_rotacion1[1]*eje_rotacion1[1]*base[1] + eje_rotacion1[1]*eje_rotacion1[2]*base[2])*(1-cos(angulo_base1)) + (eje_rotacion1[2]*base[0]-eje_rotacion1[0]*base[2])*sin(angulo_base1), base[2]*cos(angulo_base1) + (eje_rotacion1[2]*eje_rotacion1[0]*base[0] + eje_rotacion1[2]*eje_rotacion1[1]*base[1] + eje_rotacion1[2]*eje_rotacion1[2]*base[2])*(1-cos(angulo_base1)) + (eje_rotacion1[0]*base[1]-eje_rotacion1[1]*base[0])*sin(angulo_base1)
-  };
+  double norma_r = sqrt(producto_punto(v_r, v_r));
 
-  double norma_rotada = sqrt(pow(vector_rotado[0], 2) + pow(vector_rotado[1], 2) + pow(vector_rotado[2], 2));
+  vector<double> v1 = {v_r[0]/norma_r, v_r[1]/norma_r, v_r[2]/norma_r};
 
-  vector<double> base1 = {vector_rotado[0]/norma_rotada, vector_rotado[1]/norma_rotada, vector_rotado[2]/norma_rotada};
+  vector<double> v2 = producto_cruz(eje, v_r);
 
-  vector<double> base2 = producto_cruz(eje, vector_rotado);
-
-  return {base1, base2};
+  return {v1, v2};
 }
 
 void generar_curva( vector<vector<double>> parametrizacion, double espesor, int n_puntos, string nombre_del_archivo ){
 	int total_vertices = parametrizacion.size()*(n_puntos + 1);
 	long int total_triangulos = n_puntos*2*parametrizacion.size();
-
+	
+	for(int i = 0; i < parametrizacion.size()-1; i++){
+		advertencia_punto_fijo(i, i+1, parametrizacion[i], parametrizacion[i+1]);
+	}
+	
 	advertencia_exceso(total_triangulos);
 	
 	nombre_del_archivo+=".obj";
@@ -321,7 +329,6 @@ void generar_curva( vector<vector<double>> parametrizacion, double espesor, int 
 
   double radio_del_tubo = espesor/2;
 
-	// advertencia_punto_fijo(0, 1, parametrizacion[0], parametrizacion[1]);
   vector<vector<double>> plano = generador_planos(parametrizacion[0], parametrizacion[1]);
 	
    vector<vector<vector<double>>> puntos_circulares = generar_puntos(plano[0], plano[1], radio_del_tubo, n_puntos, parametrizacion[0], parametrizacion[1]);
@@ -329,19 +336,16 @@ void generar_curva( vector<vector<double>> parametrizacion, double espesor, int 
 	cout << "\033[1m\033[44m\033[33mGenerando vértices de la curva...\033[0m" << endl;
 
   for (int k = 0; k < 2; k++){
-
-    outFile << "v " << parametrizacion[k][0] << " " << parametrizacion[k][1] << " " << parametrizacion[k][2] << endl;
+    outFile << "v " << parametrizacion[k][0] << " " << parametrizacion[k][1] << " " << parametrizacion[k][2] << "\n "; 
 
     for (int i = 0; i < n_puntos; i++){
-
-     outFile << "v " << puntos_circulares[i][k][0] << " " << puntos_circulares[i][k][1] << " " << puntos_circulares[i][k][2] << endl;
-
+        outFile << "v " << puntos_circulares[i][k][0] << " " << puntos_circulares[i][k][1] << " " << puntos_circulares[i][k][2] << "\n "; 
     }
-  }
+}
   
   int vertices_iniciales = 2+2*n_puntos;
   
-  cout << "\033[34m(" << vertices_iniciales << "/" << total_vertices << ") " << progressBar(round((vertices_iniciales*100)/total_vertices)) << endl; 
+  cout << "\033[34m(" << vertices_iniciales << "/" << total_vertices << ") " << progressBar(round((vertices_iniciales*100)/total_vertices)) << "\n "; 
 
 	// Esto se tiene que arreglar, debe ser posible generar una cantidad de vectores siempre qe el coso sea mayor a 1.
 	
@@ -349,7 +353,6 @@ void generar_curva( vector<vector<double>> parametrizacion, double espesor, int 
   vector<double> base_rotacion = plano[0];
 
   for (int j = 1; j<parametrizacion.size()-1; j++){
-  	// advertencia_punto_fijo(j, j+1, parametrizacion[j], parametrizacion[j+1]);
 
     vector<vector<double>> planos = base_rotada(base_rotacion, parametrizacion[j], parametrizacion[j+1]);
 
@@ -357,44 +360,44 @@ void generar_curva( vector<vector<double>> parametrizacion, double espesor, int 
 
     base_rotacion = planos[0];
 
-    outFile << "v " << parametrizacion[j+1][0] << " " << parametrizacion[j+1][1] << " " << parametrizacion[j+1][2] << endl;
+    outFile << "v " << parametrizacion[j+1][0] << " " << parametrizacion[j+1][1] << " " << parametrizacion[j+1][2] << "\n ";
 
     for (int i = 0; i < n_puntos; i++){
 
-       outFile << "v " << puntos_circulares[i][1][0] << " " << puntos_circulares[i][1][1] << " " << puntos_circulares[i][1][2] << endl;
+       outFile << "v " << puntos_circulares[i][1][0] << " " << puntos_circulares[i][1][1] << " " << puntos_circulares[i][1][2] << "\n ";
 
     }
 	cout << "\033[A" << "\033[K";
 	int vertices_gen = vertices_iniciales + (j+2)*n_puntos + 1;
-	cout << "\033[34m(" << vertices_gen << "/" << total_vertices << ") " << progressBar(round((vertices_gen*100)/total_vertices)) << endl; 
+	cout << "\033[34m(" << vertices_gen << "/" << total_vertices << ") " << progressBar(round((vertices_gen*100)/total_vertices)) << "\n "; 
   }
   
   }
   
   cout << "\033[A" << "\033[K";
 
-	cout << "\033[32m [ Vértices generados ] \033[0m \n" << endl;
+	cout << "\033[32m [ Vértices generados ] \033[0m \n" << "\n ";
 	
-	cout << "\033[1m\033[44m\033[33mGenerando triángulos del modelo...\033[0m" << endl;
+	cout << "\033[1m\033[44m\033[33mGenerando triángulos del modelo...\033[0m" << "\n ";
 	
 	
-  // Esta función genera las tapas, supongo que podría usar un condicional más adelante.
+  // Esta función genera las tapas
 
   for (int i = 0; i < n_puntos; i++){
   
      if (i != n_puntos-1){
-       outFile << "f " << 1 << " " << i+3 << " " << i+2 << endl;
+       outFile << "f " << 1 << " " << i+3 << " " << i+2 << "\n ";
      } 
      else {
-       outFile << "f " << 1 << " " << 2 << " " << n_puntos+1 << endl;
+       outFile << "f " << 1 << " " << 2 << " " << n_puntos+1 << "\n ";
      }
-     cout << "\033[34m(" << i+1 << "/" << total_triangulos << ") "<< progressBar(round((i*100)/total_triangulos)) << endl;
+     cout << "\033[34m(" << i+1 << "/" << total_triangulos << ") "<< progressBar(round((i*100)/total_triangulos)) << "\n ";
      cout << "\033[A" << "\033[K"; 
   }
   	cout << endl;
   	cout << "\033[A" << "\033[K";
   	
-  	cout << "\033[32m [ Primera tapa generada ] \033[0m" << endl;
+  	cout << "\033[32m [ Primera tapa generada ] \033[0m" << "\n ";
   	
   
   // Aquí hacemos una función que genera la frontera del cilindro.
@@ -405,44 +408,44 @@ void generar_curva( vector<vector<double>> parametrizacion, double espesor, int 
 
       if (i != n_puntos-1){
 
-        outFile << "f " << i+3 + (k+1)*(n_puntos+1) << " " << i+2 + (k+1)*(n_puntos+1) << " " <<  i+2 + k*(n_puntos+1) << endl;
+        outFile << "f " << i+3 + (k+1)*(n_puntos+1) << " " << i+2 + (k+1)*(n_puntos+1) << " " <<  i+2 + k*(n_puntos+1) << "\n ";
 
-        outFile << "f " << i+2 + k*(n_puntos+1) << " " <<  i+3 + k*(n_puntos+1) << " " <<   i+3 + (k+1)*(n_puntos+1)<< endl;
+        outFile << "f " << i+2 + k*(n_puntos+1) << " " <<  i+3 + k*(n_puntos+1) << " " <<   i+3 + (k+1)*(n_puntos+1)<< "\n ";
 
       }
 
       else {
 
-        outFile << "f " << n_puntos+1 + (k+1)*(n_puntos + 1) << " " << n_puntos+1 + (k)*(n_puntos + 1)  << " " <<  2+k*(n_puntos+1) << endl;
+        outFile << "f " << n_puntos+1 + (k+1)*(n_puntos + 1) << " " << n_puntos+1 + (k)*(n_puntos + 1)  << " " <<  2+k*(n_puntos+1) << "\n ";
 
-        outFile << "f " <<  2+k*(n_puntos+1)  << " " <<   n_puntos+3+k*(n_puntos+1)<< " " <<   2*(n_puntos+1)  +k*(n_puntos+1)<< endl;
+        outFile << "f " <<  2+k*(n_puntos+1)  << " " <<   n_puntos+3+k*(n_puntos+1)<< " " <<   2*(n_puntos+1)  +k*(n_puntos+1)<< "\n ";
 
       }
   }
-  cout << "\033[34m(" << n_puntos*(2*k+3) << "/" << total_triangulos << ") "<< progressBar(round(((n_puntos*(2*k+3))*100)/total_triangulos)) << endl;
+  cout << "\033[34m(" << n_puntos*(2*k+3) << "/" << total_triangulos << ") "<< progressBar(round(((n_puntos*(2*k+3))*100)/total_triangulos)) << "\n ";
      cout << "\033[A" << "\033[K";
   }
   
   	cout << endl;
   	cout << "\033[A" << "\033[K";
 
-	cout << "\033[32m [ Frontera generada ] \033[0m" << endl;
+	cout << "\033[32m [ Frontera generada ] \033[0m" << "\n ";
 
   for (int i = 0; i < n_puntos; i++){
      if (i != n_puntos-1){
-       outFile << "f " << i+2 + (parametrizacion.size()-1)*(n_puntos+1) << " " << i+3 + (parametrizacion.size()-1)*(n_puntos+1) << " " << 1 + (parametrizacion.size()-1)*(n_puntos + 1) << endl;
+       outFile << "f " << i+2 + (parametrizacion.size()-1)*(n_puntos+1) << " " << i+3 + (parametrizacion.size()-1)*(n_puntos+1) << " " << 1 + (parametrizacion.size()-1)*(n_puntos + 1) << "\n ";
      } 
      else {
-       outFile << "f " << n_puntos+1 + (parametrizacion.size()-1)*(n_puntos + 1) << " " << 2 + (parametrizacion.size()-1)*(n_puntos + 1) << " " << 1 + (parametrizacion.size()-1)*(n_puntos + 1) << endl;
+       outFile << "f " << n_puntos+1 + (parametrizacion.size()-1)*(n_puntos + 1) << " " << 2 + (parametrizacion.size()-1)*(n_puntos + 1) << " " << 1 + (parametrizacion.size()-1)*(n_puntos + 1) << "\n ";
      }
-     cout << "\033[34m(" << n_puntos*(2*parametrizacion.size()+1) + i + 1 << "/" << total_triangulos << " ] "<< progressBar(round(((n_puntos*(2*parametrizacion.size()+1) + i + 1)*100)/total_triangulos)) << "%" << endl;
+     cout << "\033[34m(" << n_puntos*(2*parametrizacion.size()+1) + i + 1 << "/" << total_triangulos << " ] "<< progressBar(round(((n_puntos*(2*parametrizacion.size()+1) + i + 1)*100)/total_triangulos)) << "%" << "\n ";
      cout << "\033[A" << "\033[K";
   }
   
 	cout << endl;
   cout << "\033[A" << "\033[K";
 
-	cout << "\033[32m [ Segunda tapa generada ] \033[0m\n" << endl;
+	cout << "\033[32m [ Segunda tapa generada ] \033[0m\n" << "\n ";
 	
 	cout << "\033[1m\033[32m Curva \033[35m\033[4m" << nombre_del_archivo << "\033[0m\033[1m\033[32m generada exitosamente." << endl;
 	
