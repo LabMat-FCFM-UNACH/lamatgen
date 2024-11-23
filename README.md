@@ -1,11 +1,19 @@
 
-# LamaGen v1.0
+# LamaGen v1.2.0
 
-LamatGen es un recurso planteado para C++ que permite la generación de modelos 3D de elementos matemáticos parametrizables. Consiste de 3 clases principales:
+LamatGen es un recurso planteado para C++ que permite la generación de modelos 3D de curvas paramétricas no planares además de herramientas para facilitar generar dichas curvas tales como:
+* Métodos numéricos para solución de sistemas de ecuaciones diferenciales ordinarias.
+* Herramientas para el manejo de espacios vectoriales como funciones para el cálculo de la norma, producto interno, producto cruz, rotaciones, etc.
+* Funciones que permiten la creación de modelos por defecto a partir de ciertos parámetros.
+* Generadores de números aleatorios para crear modelos que representen una caminata aleatoria ajustada o no a una cierta frontera.
+* Optimización para el uso de los modelos en impresión 3D.
 
- *  **lamat_numethod**: permite al usuario generar puntos paramétricos a partir de herramientas de cálculo numérico, actualmente únicamente permite resolver sistemas de ecuaciones diferenciales ordinarias a partir del método de Runge - Kutta de cuarto orden pero se plantea tener métodos que permitan una resolución a partir de problemas en la frontera o métodos de interpolación de puntos.
- *  **lamat_curve**: permite generar un archivo .obj de una curva paramétrica, este archivo se muestra en milímetros y se le permite al usuario seleccionar la resolución y tamaño de la vecindad tubular del archivo. Así mismo, está diseñado para que los archivos generados sean compatibles con laminadores como Prusa Slicer o Ultimaker Cura permitiendo al usuario no solo mantener un archivo renderizable sino traer las curvas generadas al mundo real.
- *  **lamat_surface**: es el siguiente paso a implementar con el objetivo de tratar el mismo sistema de lamat_curve pero tratando con superficies.
+## Novedades de la versión
+La versión 1.2.0 de LamatGen integra las siguientes funcionalidades:
+* Detección de puntos idénticos consecutivos en un conjunto de elementos parametrizados.
+* Optimización del generado de archivos.
+* Implementación de la clase Lamatools que incluye un conjunto de herramientas para la comodidad del usuario al generar parametrizaciones tales como: producto punto, producto cruz, norma, rotación general a partir de la fórmula de rotación de Rodrigues, etc.
+* Implementación de la clase Default_solids, facilitando el generado de modelos recurrentes con unos ciertos parámetros, incluyendo en este momento: caminantes aleatorios con frontera esférica y cúbica, caminantes aleatorios con memoria con frontera esférica y cúbica.
 
 ### ¿Puedo vender o generar algún ingreso de los modelos generados por el programa?
 Sí, este es un trabajo realizado que tiene como objetivo facilitar el trabajo de las personas que trabajen con recursos en matemáticas independientemente de su situación económica o grado académico por lo que está registrado frente a la licencia GPL_3.0 lo que lo coloca como código abierto, es gratuito para quien quiera utilizarlo pero el producto de utilizar el programa puede ser comercializado sin problema, sólo te pedimos que pases la voz en cuanto al programa para que más gente lo conozca.
