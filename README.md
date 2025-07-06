@@ -1,5 +1,5 @@
 
-# LamaGen v1.2.0
+# LamatGen v1.2.0
 
 LamatGen es un recurso planteado para C++ que permite la generación de modelos 3D de curvas paramétricas no planares además de herramientas para facilitar generar dichas curvas tales como:
 * Métodos numéricos para solución de sistemas de ecuaciones diferenciales ordinarias.
